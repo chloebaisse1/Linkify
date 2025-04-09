@@ -6,7 +6,7 @@ const Navbar = () => {
     <div className="px-5 md:px-[10%] pt-4">
       <div className="flex justify-between items-center">
         <Logo />
-        <div className="">
+        <div>
           <UserButton />
         </div>
       </div>
