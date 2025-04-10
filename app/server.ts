@@ -1,6 +1,7 @@
 "use server";
 
 import prisma from "@/lib/prisma";
+import { SocialLink } from "@prisma/client";
 
 async function generateUniquePseudo(base: string) {
   let pseudo = base;
@@ -66,7 +67,7 @@ export async function addSocialLink(
       throw new Error("Utilisateur non trouvé.");
     }
 
-    await prisma.socialLink.create({
+    return await prisma.socialLink.create({
       data: {
         userId: user?.id,
         title,
@@ -74,6 +75,39 @@ export async function addSocialLink(
         pseudo,
       },
     });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+export async function getSocialLinks(identifiant: string) {
+  try {
+    const user = await prisma.user.findFirst({
+      where: {
+        OR: [{ email: identifiant }, { pseudo: identifiant }],
+      },
+    });
+
+    if (!user) {
+      throw new Error("Utilisateur non trouvé.");
+    }
+
+    const isEmail = identifiant.includes("@");
+    let socialLink: SocialLink[] = [];
+
+    if (isEmail) {
+      socialLink = await prisma.socialLink.findMany({
+        where: { userId: user?.id },
+      });
+    } else {
+      socialLink = await prisma.socialLink.findMany({
+        where: {
+          userId: user?.id,
+          active: true,
+        },
+      });
+    }
+    return socialLink;
   } catch (error) {
     console.error(error);
   }

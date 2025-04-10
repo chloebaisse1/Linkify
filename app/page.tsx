@@ -6,9 +6,13 @@ import Wrapper from "./components/Wrapper";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { getUserInfo } from "./server";
+import { addSocialLink, getSocialLinks, getUserInfo } from "./server";
 import { Copy, Plus } from "lucide-react";
 import socialLinksData from "./socialLinksData";
+import { parseUrl } from "next/dist/shared/lib/router/utils/parse-url";
+import { SocialLink } from "@prisma/client";
+import EmptyState from "./components/EmptyState";
+import LinkComponent from "./components/LinkComponent";
 
 const truncateLink = (url: string, maxLength: number) => {
   return url.length > maxLength ? url.substring(0, maxLength) + "..." : url;
@@ -22,6 +26,8 @@ export default function Home() {
   const [link, setLink] = useState<string>("");
   const [socialPseudo, setSocialPseudo] = useState<string>("");
   const [title, setTitle] = useState<string>(socialLinksData[0].name);
+  const [links, setLinks] = useState<SocialLink[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
 
   async function fetchLinks() {
     try {
@@ -30,6 +36,12 @@ export default function Home() {
         setPseudo(userInfo?.pseudo);
         setTheme(userInfo?.theme);
       }
+
+      const fetchedLinks = await getSocialLinks(email);
+      if (fetchedLinks) {
+        setLinks(fetchedLinks);
+      }
+      setLoading(false);
     } catch (error) {
       toast.error("Erreur lors de la récupération des informations");
     }
@@ -47,6 +59,61 @@ export default function Home() {
       .writeText(url)
       .then(() => toast.success("URL copiée dans le presse papier"))
       .catch((err) => console.error("Erreur lors de la copie", err));
+  };
+
+  const isValidURL = (url: string) => {
+    try {
+      const parsedUrl = new URL(url);
+      return (
+        parseUrl(url).protocol === "http:" ||
+        parseUrl(url).protocol === "https:"
+      );
+    } catch {
+      return false;
+    }
+  };
+
+  const handleAddLink = async () => {
+    if (!isValidURL(link)) {
+      toast.info("L'URL n'est pas valide");
+      return;
+    }
+    if (!socialPseudo) {
+      toast.info("Le pseudo n'est pas valide");
+      return;
+    }
+
+    const selectedtitle = socialLinksData.find((l) => l.name === title);
+    if (selectedtitle?.root && selectedtitle?.altRoot) {
+      if (
+        !link.startsWith(selectedtitle?.root) &&
+        !link.startsWith(selectedtitle?.altRoot)
+      ) {
+        toast.info(
+          `L'URL doit commencer par ${selectedtitle.root} ou par ${selectedtitle.altRoot}`
+        );
+        return;
+      }
+    }
+    try {
+      const newLink = await addSocialLink(email, title, link, socialPseudo);
+      const modal = document.getElementById(
+        "social_link_form"
+      ) as HTMLDialogElement;
+      if (modal) {
+        modal.close();
+      }
+      if (newLink) {
+        setLinks([...links, newLink]);
+      }
+
+      setLink("");
+      setSocialPseudo("");
+      setTitle(socialLinksData[0].name);
+      toast.success("Lien ajouté avec succès");
+    } catch (error) {
+      console.error(error);
+    }
   };
 
   return (
@@ -88,6 +155,7 @@ export default function Home() {
           >
             <Plus className="w-4 h-4" /> Ajouter
           </button>
+
           <dialog id="social_link_form" className="modal">
             <div className="modal-box">
               <form method="dialog">
@@ -132,10 +200,37 @@ export default function Home() {
                   onChange={(e) => setLink(e.target.value)}
                 />
 
-                <button className="btn btn-accent">Ajouter</button>
+                <button className="btn btn-accent" onClick={handleAddLink}>
+                  Ajouter
+                </button>
               </div>
             </div>
           </dialog>
+
+          {loading ? (
+            <div className="my-30 flex justify-center items-center w-full">
+              <span className="loading loading-spinner loading-xl text-accent"></span>
+            </div>
+          ) : links.length === 0 ? (
+            <div className="flex justify-center items-center w-full">
+              <EmptyState
+                IconComponent={"AudioLines"}
+                message={"Aucuns liens disponible"}
+              />
+            </div>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {links.map((link) => (
+                <LinkComponent
+                  key={link.id}
+                  socialLink={link}
+                  //onRemove={}
+                  readOnly={false}
+                  fetchLinks={fetchLinks}
+                />
+              ))}
+            </div>
+          )}
         </div>
 
         <div className="md:w-1/3 ml-4"></div>
