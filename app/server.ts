@@ -48,3 +48,33 @@ export async function getUserInfo(identifiant: string) {
     console.error(error);
   }
 }
+
+export async function addSocialLink(
+  email: string,
+  title: string,
+  url: string,
+  pseudo: string
+) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: {
+        email,
+      },
+    });
+
+    if (!user) {
+      throw new Error("Utilisateur non trouvé.");
+    }
+
+    await prisma.socialLink.create({
+      data: {
+        userId: user?.id,
+        title,
+        url,
+        pseudo,
+      },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
