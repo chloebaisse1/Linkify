@@ -1,3 +1,5 @@
+/* eslint-disable react-hooks/exhaustive-deps */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 "use client";
 import Link from "next/link";
 import Wrapper from "./components/Wrapper";
@@ -17,6 +19,9 @@ export default function Home() {
   const email = user?.primaryEmailAddress?.emailAddress as string;
   const [pseudo, setPseudo] = useState<string | null | undefined>(null);
   const [theme, setTheme] = useState<string | null | undefined>(null);
+  const [link, setLink] = useState<string>("");
+  const [socialPseudo, setSocialPseudo] = useState<string>("");
+  const [title, setTitle] = useState<string>(socialLinksData[0].name);
 
   async function fetchLinks() {
     try {
@@ -95,14 +100,39 @@ export default function Home() {
               <p className="py-4">
                 Ajoutez vos liens publics pour les partager facilement
               </p>
+
               <div className="grid grid-cols-2 gap-2">
-                <select className="select select-bordered">
+                <select
+                  className="select select-bordered"
+                  value={title}
+                  onChange={(e) => setTitle(e.target.value)}
+                >
                   {socialLinksData.map(({ name }) => (
                     <option key={name} value={name}>
                       {name}
                     </option>
                   ))}
                 </select>
+
+                <input
+                  type="text"
+                  placeholder="Entrez votre pseudo social"
+                  className="input input-bordered w-full"
+                  value={socialPseudo}
+                  name=""
+                  onChange={(e) => setSocialPseudo(e.target.value)}
+                />
+
+                <input
+                  type="text"
+                  placeholder="Entrez l'URL social"
+                  className="input input-bordered w-full"
+                  value={link}
+                  name=""
+                  onChange={(e) => setLink(e.target.value)}
+                />
+
+                <button className="btn btn-accent">Ajouter</button>
               </div>
             </div>
           </dialog>
