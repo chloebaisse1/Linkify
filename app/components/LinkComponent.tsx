@@ -1,8 +1,10 @@
 import { SocialLink } from "@prisma/client";
-import { PencilIcon } from "lucide-react";
+import { ChartColumnIncreasing, PencilIcon, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { SocialIcon } from "react-social-icons";
+import { toggleSocialLinkActive } from "../server";
+import { toast } from "react-toastify";
 
 interface LinkComponentProps {
   socialLink: SocialLink;
@@ -23,6 +25,17 @@ const LinkComponent: FC<LinkComponentProps> = ({
 }) => {
   const [isActive, setIsActive] = useState(socialLink.active);
 
+  const handleToggleActive = async () => {
+    try {
+      await toggleSocialLinkActive(socialLink.id);
+      setIsActive(!isActive);
+      fetchLinks?.();
+      toast.success("Lien activé");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div>
       {readOnly ? (
@@ -35,6 +48,7 @@ const LinkComponent: FC<LinkComponentProps> = ({
               type="checkbox"
               className="toggle toggle-sm"
               checked={isActive}
+              onChange={handleToggleActive}
             />
           </div>
 
@@ -54,9 +68,20 @@ const LinkComponent: FC<LinkComponentProps> = ({
             </div>
 
             <div className="flex justify-between">
-              <button className="btn btn-sm btn-ghost">
-                <PencilIcon className="w-4 h-4" />
-              </button>
+              <div className="flex items-center">
+                <ChartColumnIncreasing className="w-4 h-4" strokeWidth={1} />
+                <span className="ml-2">0 clics</span>
+              </div>
+
+              <div>
+                <button className="btn btn-sm btn-ghost">
+                  <PencilIcon className="w-4 h-4" strokeWidth={1} />
+                </button>
+
+                <button className="btn btn-sm btn-ghost">
+                  <Trash className="w-4 h-4" strokeWidth={1} />
+                </button>
+              </div>
             </div>
           </>
         </div>

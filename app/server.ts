@@ -112,3 +112,21 @@ export async function getSocialLinks(identifiant: string) {
     console.error(error);
   }
 }
+
+export async function toggleSocialLinkActive(linkId: string) {
+  try {
+    const socialLink = await prisma.socialLink.findUnique({
+      where: { id: linkId },
+    });
+    if (!socialLink) {
+      throw new Error("Social link non trouvé");
+    }
+
+    const updatedLink = await prisma.socialLink.update({
+      where: { id: linkId },
+      data: { active: !socialLink.active },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
