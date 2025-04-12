@@ -6,7 +6,12 @@ import Wrapper from "./components/Wrapper";
 import { useUser } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { toast } from "react-toastify";
-import { addSocialLink, getSocialLinks, getUserInfo } from "./server";
+import {
+  addSocialLink,
+  getSocialLinks,
+  getUserInfo,
+  removeSocialLink,
+} from "./server";
 import { Copy, Plus } from "lucide-react";
 import socialLinksData from "./socialLinksData";
 import { parseUrl } from "next/dist/shared/lib/router/utils/parse-url";
@@ -111,6 +116,16 @@ export default function Home() {
       setSocialPseudo("");
       setTitle(socialLinksData[0].name);
       toast.success("Lien ajouté avec succès");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleRemoveLink = async (linkId: string) => {
+    try {
+      await removeSocialLink(email, linkId);
+      setLinks(links.filter((link) => link.id !== linkId));
+      toast.success("Lien supprimé avec succès");
     } catch (error) {
       console.error(error);
     }
@@ -222,7 +237,7 @@ export default function Home() {
                 <LinkComponent
                   key={link.id}
                   socialLink={link}
-                  onRemove={}
+                  onRemove={handleRemoveLink}
                   readOnly={false}
                   fetchLinks={fetchLinks}
                 />
