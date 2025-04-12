@@ -3,8 +3,9 @@ import { ChartColumnIncreasing, PencilIcon, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { SocialIcon } from "react-social-icons";
-import { toggleSocialLinkActive } from "../server";
+import { toggleSocialLinkActive, updateSocialLink } from "../server";
 import { toast } from "react-toastify";
+import socialLinksData from "../socialLinksData";
 
 interface LinkComponentProps {
   socialLink: SocialLink;
@@ -24,6 +25,12 @@ const LinkComponent: FC<LinkComponentProps> = ({
   fetchLinks,
 }) => {
   const [isActive, setIsActive] = useState(socialLink.active);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState({
+    title: socialLink.title,
+    url: socialLink.url,
+    pseudo: socialLink.pseudo,
+  });
 
   const handleToggleActive = async () => {
     try {
@@ -31,6 +38,32 @@ const LinkComponent: FC<LinkComponentProps> = ({
       setIsActive(!isActive);
       fetchLinks?.();
       toast.success("Lien activé");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleUpdateLink = async () => {
+    try {
+      const selectedtitle = socialLinksData.find(
+        (l) => l.name === formData.title
+      );
+      if (selectedtitle?.root && selectedtitle?.altRoot) {
+        if (
+          !formData.url.startsWith(selectedtitle.root) &&
+          !formData.url.startsWith(selectedtitle.altRoot)
+        ) {
+          toast.info(
+            `L'URL doit commencer par ${selectedtitle.root} ou par ${selectedtitle.altRoot}`
+          );
+          return;
+        }
+      }
+
+      await updateSocialLink(socialLink.id, formData);
+      setIsEditing(false);
+      fetchLinks?.();
+      toast.success("Lien mis à jour");
     } catch (error) {
       console.error(error);
     }
@@ -52,38 +85,93 @@ const LinkComponent: FC<LinkComponentProps> = ({
             />
           </div>
 
-          <>
-            <div className="flex items-center gap-2">
-              <SocialIcon
-                url={socialLink.url}
-                style={{ width: 30, height: 30 }}
+          {isEditing ? (
+            <div className="flex flex-col space-y-2">
+              <select
+                className="select select-bordered"
+                value={formData.title}
+                onChange={(e) =>
+                  setFormData({ ...formData, title: e.target.value })
+                }
+              >
+                {socialLinksData.map(({ name }) => (
+                  <option key={name} value={name}>
+                    {name}
+                  </option>
+                ))}
+              </select>
+
+              <input
+                type="text"
+                placeholder="Entrez votre pseudo social"
+                className="input input-bordered w-full"
+                value={formData.pseudo}
+                onChange={(e) =>
+                  setFormData({ ...formData, pseudo: e.target.value })
+                }
               />
-              <span className="badge badge-accent">{socialLink.title}</span>
-              <Link className="link md:hidden" href={socialLink.url}>
-                {truncateLink(socialLink.url, 30)}
-              </Link>
-              <Link className="link hidden md:flex" href={socialLink.url}>
-                {socialLink.url}
-              </Link>
-            </div>
 
-            <div className="flex justify-between">
-              <div className="flex items-center">
-                <ChartColumnIncreasing className="w-4 h-4" strokeWidth={1} />
-                <span className="ml-2">0 clics</span>
+              <input
+                type="text"
+                placeholder="Entrez l'URL social"
+                className="input input-bordered w-full"
+                value={formData.url}
+                onChange={(e) =>
+                  setFormData({ ...formData, url: e.target.value })
+                }
+              />
+              <div className="flex space-x-2">
+                <button
+                  className="btn btn-accent btn-sm"
+                  onClick={handleUpdateLink}
+                >
+                  Sauvegarder
+                </button>
+                <button
+                  className="btn btn-accent btn-sm"
+                  onClick={() => setIsEditing(false)}
+                >
+                  Annuler
+                </button>
+              </div>
+            </div>
+          ) : (
+            <>
+              <div className="flex items-center gap-2">
+                <SocialIcon
+                  url={socialLink.url}
+                  style={{ width: 30, height: 30 }}
+                />
+                <span className="badge badge-accent">{socialLink.title}</span>
+                <Link className="link md:hidden" href={socialLink.url}>
+                  {truncateLink(socialLink.url, 30)}
+                </Link>
+                <Link className="link hidden md:flex" href={socialLink.url}>
+                  {socialLink.url}
+                </Link>
               </div>
 
-              <div>
-                <button className="btn btn-sm btn-ghost">
-                  <PencilIcon className="w-4 h-4" strokeWidth={1} />
-                </button>
+              <div className="flex justify-between">
+                <div className="flex items-center">
+                  <ChartColumnIncreasing className="w-4 h-4" strokeWidth={1} />
+                  <span className="ml-2">0 clics</span>
+                </div>
 
-                <button className="btn btn-sm btn-ghost">
-                  <Trash className="w-4 h-4" strokeWidth={1} />
-                </button>
+                <div>
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => setIsEditing(true)}
+                  >
+                    <PencilIcon className="w-4 h-4" strokeWidth={1} />
+                  </button>
+
+                  <button className="btn btn-sm btn-ghost">
+                    <Trash className="w-4 h-4" strokeWidth={1} />
+                  </button>
+                </div>
               </div>
-            </div>
-          </>
+            </>
+          )}
         </div>
       )}
     </div>

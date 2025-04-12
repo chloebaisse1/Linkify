@@ -121,11 +121,24 @@ export async function toggleSocialLinkActive(linkId: string) {
     if (!socialLink) {
       throw new Error("Social link non trouvé");
     }
+  } catch (error) {
+    console.error(error);
+  }
+}
 
+export async function updateSocialLink(
+  linkId: string,
+  data: { title?: string; url?: string; pseudo?: string }
+) {
+  if (!linkId) {
+    throw new Error("L'ID du lien est requis");
+  }
+  try {
     const updatedLink = await prisma.socialLink.update({
       where: { id: linkId },
-      data: { active: !socialLink.active },
+      data,
     });
+    return updatedLink;
   } catch (error) {
     console.error(error);
   }

@@ -187,7 +187,6 @@ export default function Home() {
                   placeholder="Entrez votre pseudo social"
                   className="input input-bordered w-full"
                   value={socialPseudo}
-                  name=""
                   onChange={(e) => setSocialPseudo(e.target.value)}
                 />
 
@@ -196,7 +195,6 @@ export default function Home() {
                   placeholder="Entrez l'URL social"
                   className="input input-bordered w-full"
                   value={link}
-                  name=""
                   onChange={(e) => setLink(e.target.value)}
                 />
 
