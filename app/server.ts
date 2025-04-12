@@ -143,3 +143,29 @@ export async function updateSocialLink(
     console.error(error);
   }
 }
+
+export async function removeSocialLink(email: string, linkId: string) {
+  try {
+    const user = await prisma.user.findUnique({
+      where: { email: email },
+    });
+    if (!user) {
+      throw new Error("Utilisateur non trouvé.");
+    }
+    const socialLink = await prisma.socialLink.findUnique({
+      where: { id: linkId },
+    });
+    if (!socialLink) {
+      throw new Error("Lien non trouvé.");
+    }
+    if (socialLink.userId != user.id) {
+      throw new Error("Vous n'avez pas accès à ce lien.");
+    }
+
+    await prisma.socialLink.delete({
+      where: { id: linkId },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}

@@ -222,7 +222,7 @@ export default function Home() {
                 <LinkComponent
                   key={link.id}
                   socialLink={link}
-                  //onRemove={}
+                  onRemove={}
                   readOnly={false}
                   fetchLinks={fetchLinks}
                 />

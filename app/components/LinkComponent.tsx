@@ -165,7 +165,10 @@ const LinkComponent: FC<LinkComponentProps> = ({
                     <PencilIcon className="w-4 h-4" strokeWidth={1} />
                   </button>
 
-                  <button className="btn btn-sm btn-ghost">
+                  <button
+                    className="btn btn-sm btn-ghost"
+                    onClick={() => onRemove?.(socialLink.id)}
+                  >
                     <Trash className="w-4 h-4" strokeWidth={1} />
                   </button>
                 </div>
