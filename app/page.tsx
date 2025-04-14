@@ -11,8 +11,9 @@ import {
   getSocialLinks,
   getUserInfo,
   removeSocialLink,
+  updateUserTheme,
 } from "./server";
-import { Copy, Plus } from "lucide-react";
+import { Copy, Palette, Plus } from "lucide-react";
 import socialLinksData from "./socialLinksData";
 import { parseUrl } from "next/dist/shared/lib/router/utils/parse-url";
 import { SocialLink } from "@prisma/client";
@@ -24,11 +25,47 @@ const truncateLink = (url: string, maxLength = 20) => {
   return url.length > maxLength ? url.substring(0, maxLength) + "..." : url;
 };
 
+const themes = [
+  "light",
+  "dark",
+  "cupcake",
+  "bumblebee",
+  "emerald",
+  "corporate",
+  "synthwave",
+  "retro",
+  "cyberpunk",
+  "valentine",
+  "halloween",
+  "garden",
+  "forest",
+  "aqua",
+  "lofi",
+  "pastel",
+  "fantasy",
+  "wireframe",
+  "black",
+  "luxury",
+  "dracula",
+  "cmyk",
+  "autumn",
+  "business",
+  "acid",
+  "lemonade",
+  "night",
+  "coffee",
+  "winter",
+  "dim",
+  "nord",
+  "sunset",
+];
+
 export default function Home() {
   const { user } = useUser();
   const email = user?.primaryEmailAddress?.emailAddress as string;
   const [pseudo, setPseudo] = useState<string | null | undefined>(null);
   const [theme, setTheme] = useState<string | null | undefined>(null);
+  const [theme2, setTheme2] = useState<string | null | undefined>(null);
   const [link, setLink] = useState<string>("");
   const [socialPseudo, setSocialPseudo] = useState<string>("");
   const [title, setTitle] = useState<string>(socialLinksData[0].name);
@@ -41,6 +78,7 @@ export default function Home() {
       if (userInfo) {
         setPseudo(userInfo?.pseudo);
         setTheme(userInfo?.theme);
+        setTheme2(userInfo?.theme);
       }
 
       const fetchedLinks = await getSocialLinks(email);
@@ -127,6 +165,18 @@ export default function Home() {
       await removeSocialLink(email, linkId);
       setLinks(links.filter((link) => link.id !== linkId));
       toast.success("Lien supprimé avec succès");
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
+  const handleConfirmTheme = async () => {
+    try {
+      if (theme) {
+        await updateUserTheme(email, theme);
+        toast.success("Thème changé avec succès");
+        setTheme2(theme);
+      }
     } catch (error) {
       console.error(error);
     }
@@ -249,7 +299,34 @@ export default function Home() {
 
         <div className="md:w-1/3 ml-4">
           {pseudo && theme && (
-            <Visualisation socialLinks={links} pseudo={pseudo} theme={theme} />
+            <div>
+              <div className="flex items-center mb-4">
+                <select
+                  className="select select-bordered w-full"
+                  value={theme}
+                  onChange={(e) => setTheme(e.target.value)}
+                >
+                  {themes.map((themeOption) => (
+                    <option key={themeOption} value={themeOption}>
+                      {themeOption}
+                    </option>
+                  ))}
+                </select>
+                <button
+                  onClick={handleConfirmTheme}
+                  disabled={theme == theme2}
+                  className="btn btn-primary ml-4"
+                >
+                  <Palette className="w-4 h-4" />
+                </button>
+              </div>
+
+              <Visualisation
+                socialLinks={links}
+                pseudo={pseudo}
+                theme={theme}
+              />
+            </div>
           )}
         </div>
       </div>

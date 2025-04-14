@@ -182,3 +182,14 @@ export async function incrementClickCount(linkId: string) {
     console.error(error);
   }
 }
+
+export async function updateUserTheme(email: string, newTheme: string) {
+  try {
+    await prisma.user.update({
+      where: { email },
+      data: { theme: newTheme },
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
