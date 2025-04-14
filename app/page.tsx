@@ -18,8 +18,9 @@ import { parseUrl } from "next/dist/shared/lib/router/utils/parse-url";
 import { SocialLink } from "@prisma/client";
 import EmptyState from "./components/EmptyState";
 import LinkComponent from "./components/LinkComponent";
+import Visualisation from "./components/Visualisation";
 
-const truncateLink = (url: string, maxLength: number) => {
+const truncateLink = (url: string, maxLength = 20) => {
   return url.length > maxLength ? url.substring(0, maxLength) + "..." : url;
 };
 
@@ -149,7 +150,7 @@ export default function Home() {
                 className="link flex md:hidden font-bold"
                 href={`http://localhost:3000/page/${pseudo}`}
               >
-                {truncateLink(`http://localhost:3000/page/`, 20)}
+                {truncateLink(`http://localhost:3000/page/`)}
                 {pseudo}
               </Link>
             </div>
@@ -246,7 +247,11 @@ export default function Home() {
           )}
         </div>
 
-        <div className="md:w-1/3 ml-4"></div>
+        <div className="md:w-1/3 ml-4">
+          {pseudo && theme && (
+            <Visualisation socialLinks={links} pseudo={pseudo} theme={theme} />
+          )}
+        </div>
       </div>
     </Wrapper>
   );

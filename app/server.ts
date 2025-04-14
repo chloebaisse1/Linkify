@@ -169,3 +169,16 @@ export async function removeSocialLink(email: string, linkId: string) {
     console.error(error);
   }
 }
+
+export async function incrementClickCount(linkId: string) {
+  try {
+    const updatedLink = await prisma.socialLink.update({
+      where: { id: linkId },
+      data: { clicks: { increment: 1 } },
+    });
+
+    return updatedLink;
+  } catch (error) {
+    console.error(error);
+  }
+}

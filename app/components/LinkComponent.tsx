@@ -3,7 +3,11 @@ import { ChartColumnIncreasing, PencilIcon, Trash } from "lucide-react";
 import Link from "next/link";
 import { FC, useState } from "react";
 import { SocialIcon } from "react-social-icons";
-import { toggleSocialLinkActive, updateSocialLink } from "../server";
+import {
+  incrementClickCount,
+  toggleSocialLinkActive,
+  updateSocialLink,
+} from "../server";
 import { toast } from "react-toastify";
 import socialLinksData from "../socialLinksData";
 
@@ -31,6 +35,7 @@ const LinkComponent: FC<LinkComponentProps> = ({
     url: socialLink.url,
     pseudo: socialLink.pseudo,
   });
+  const [clicks, setClicks] = useState(socialLink.clicks || 0);
 
   const handleToggleActive = async () => {
     try {
@@ -69,10 +74,39 @@ const LinkComponent: FC<LinkComponentProps> = ({
     }
   };
 
+  const handleIncrementClick = async () => {
+    try {
+      await incrementClickCount(socialLink.id);
+      setClicks(clicks + 1);
+    } catch (error) {
+      console.error(error);
+    }
+  };
+
   return (
     <div>
       {readOnly ? (
-        <div>user</div>
+        <div className="flex flex-col bg-base-200 p-6 rounded-3xl w-full">
+          <span className="badge mb-2">@{socialLink.pseudo}</span>
+          <div className="flex justify-between">
+            <div className="flex items-center gap-2">
+              <SocialIcon
+                url={socialLink.url}
+                style={{ width: 30, height: 30 }}
+                onClick={handleIncrementClick}
+              />
+              <span className="badge badge-primary">{socialLink.title}</span>
+            </div>
+            <Link
+              className="btn btn-sm btn-accent"
+              href={socialLink.url}
+              target="_blank"
+              onClick={handleIncrementClick}
+            >
+              Ouvir le lien
+            </Link>
+          </div>
+        </div>
       ) : (
         <div className="flex flex-col space-y-2 w-full bg-base-200 p-6 rounded-3xl">
           <div className="flex items-center justify-between">
@@ -154,7 +188,7 @@ const LinkComponent: FC<LinkComponentProps> = ({
               <div className="flex justify-between">
                 <div className="flex items-center">
                   <ChartColumnIncreasing className="w-4 h-4" strokeWidth={1} />
-                  <span className="ml-2">0 clics</span>
+                  <span className="ml-2">{clicks} clics</span>
                 </div>
 
                 <div>
